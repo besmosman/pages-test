@@ -2,7 +2,7 @@ name: Build and Deploy .NET 8 Output
 
 on:
   push:
-    branches: [ main ]  # Or your default branch
+    branches: [ main ]  # Change if using a different default branch
   workflow_dispatch:
 
 jobs:
@@ -20,16 +20,20 @@ jobs:
 
       - name: Restore dependencies
         run: dotnet restore
+        working-directory: pages-test
 
       - name: Build project
         run: dotnet build --configuration Release --no-restore
+        working-directory: pages-test
 
       - name: Run app
         run: dotnet run --configuration Release
+        working-directory: pages-test
 
-      - name: Upload output to GitHub Pages
+      - name: Deploy output to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./output
+          publish_dir: ./pages-test/output
           publish_branch: gh-pages
+
