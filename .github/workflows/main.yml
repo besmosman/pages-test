@@ -1,16 +1,21 @@
-name: Build and Deploy .NET 8 Output
+name: Build and Deploy GitHub Pages (modern way)
 
 on:
   push:
-    branches: [ main ]  # Change if using a different default branch
+    branches: [ main ]
   workflow_dispatch:
 
+permissions:
+  contents: read
+  pages: write
+  id-token: write  # Required for `actions/deploy-pages`
+
 jobs:
-  build-and-deploy:
+  build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Setup .NET 8
@@ -30,10 +35,19 @@ jobs:
         run: dotnet run --configuration Release
         working-directory: pages-test
 
-      - name: Deploy output to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v4
+      - name: Upload static files to Pages artifact
+        uses: actions/upload-pages-artifact@v3
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./pages-test/output
-          publish_branch: gh-pages
+          path: pages-test/output
 
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deploy
+        uses: actions/deploy-pages@v4
